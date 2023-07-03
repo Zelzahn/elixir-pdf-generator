@@ -1,7 +1,6 @@
 defmodule PdfGenerator.PathAgent do
   require Logger
   defstruct [
-    weasyprint_path: nil,
     pdftk_path:  nil,
     chrome_path: nil,
     node_path:   nil,
