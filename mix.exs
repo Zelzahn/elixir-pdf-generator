@@ -2,7 +2,7 @@ defmodule PdfGenerator.Mixfile do
   use Mix.Project
 
   @source_url "https://github.com/Zelzahn/elixir-pdf-generator"
-  @version "0.6.3"
+  @version "0.6.4"
 
   def project do
     [
