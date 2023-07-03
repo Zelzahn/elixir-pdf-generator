@@ -1,8 +1,8 @@
 defmodule PdfGenerator.Mixfile do
   use Mix.Project
 
-  @source_url "https://github.com/gutschilla/elixir-pdf-generator"
-  @version "0.6.2"
+  @source_url "https://github.com/Zelzahn/elixir-pdf-generator"
+  @version "0.6.3"
 
   def project do
     [
@@ -28,10 +28,10 @@ defmodule PdfGenerator.Mixfile do
   defp package do
     [
       description:
-        "A wrapper for wkhtmltopdf, weasyprint and chrome-headless (puppeteer) with optional " <>
+        "A wrapper for weasyprint and chrome-headless (puppeteer) with optional " <>
           "support for encryption via pdftk.",
       files: ["lib", "mix.exs", "README.md", "LICENSE", "test", "priv"],
-      maintainers: ["Martin Gutsch"],
+      maintainers: ["Friedrich Vandenberghe"],
       licenses: ["MIT"],
       links: %{
         "Changelog" => "https://hexdocs.pm/elixir-pdf-generator/changelog.html",

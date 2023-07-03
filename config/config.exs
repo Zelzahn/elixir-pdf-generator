@@ -11,5 +11,5 @@ config :pdf_generator,
 if Mix.env() == :test do
   config :pdf_generator,
     command_prefix: "xvfb-run",
-    raise_on_missing_wkhtmltopdf_binary: true
+    raise_on_missing_weasyprint_binary: true
 end
