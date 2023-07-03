@@ -64,9 +64,8 @@ defmodule PdfGenerator do
         # worker(TestApp.Worker, [arg1, arg2, arg3])
         worker(
           PdfGenerator.PathAgent, [[
-            wkhtml_path:                         Application.get_env(:pdf_generator, :wkhtml_path),
             pdftk_path:                          Application.get_env(:pdf_generator, :pdftk_path),
-            raise_on_missing_wkhtmltopdf_binary: Application.get_env(:pdf_generator, :raise_on_missing_wkhtmltopdf_binary, true),
+            raise_on_missing_weasyprint_binary: Application.get_env(:pdf_generator, :raise_on_missing_weasyprint_binary, true),
           ]]
         )
       ]
@@ -75,7 +74,7 @@ defmodule PdfGenerator do
       Supervisor.start_link(children, opts)
   end
 
-  def defaults(), do: [generator: :wkhtmltopdf, page_size: "A4"]
+  def defaults(), do: [generator: :weasyprint, page_size: "A4"]
 
   # return file name of generated pdf
 
@@ -132,7 +131,7 @@ defmodule PdfGenerator do
   @type path          :: binary()
   @type html_path     :: path
   @type pdf_path      :: path
-  @type generator     :: :wkhtmltopdf | :chrome | :weasyprint
+  @type generator     :: :chrome | :weasyprint
 
   @spec generate(content, opts) :: {:ok, pdf_file_path} | {:error, reason}
   def generate(content, opts \\ []) do
@@ -232,30 +231,6 @@ defmodule PdfGenerator do
     {executable, arguments}
   end
 
-  def make_command(:wkhtmltopdf, options, content, {html_path, pdf_path}) do
-    executable  = PdfGenerator.PathAgent.get.wkhtml_path
-    source =
-      case content do
-        {:url, url} -> url
-        _html       -> html_path
-      end
-    shell_params = options[:shell_params] || []
-    arguments = List.flatten([
-      shell_params,
-      "--page-size", options[:page_size] || "A4",
-      source, pdf_path
-    ])
-    # for wkhtmltopdf we support prefixes like ["xvfb-run", "-a"] to precede the actual command
-    {executable, arguments} =
-      case get_command_prefix(options) do
-        nil                    -> {executable, arguments}
-        [prefix | prefix_args] -> {prefix, prefix_args ++ [executable] ++ arguments}
-        prefix                 -> {prefix, [executable | arguments]}
-      end
-    {executable, arguments} |> inspect() |> Logger.debug()
-    {executable, arguments}
-  end
-
   def make_command(:weasyprint, options, content, {html_path, pdf_path}) do
     executable = PdfGenerator.PathAgent.get.weasyprint_path
     source =
@@ -286,7 +261,6 @@ defmodule PdfGenerator do
 
   defp result_ok(:chrome,     _string,          0), do: true
   defp result_ok(:chrome,     _string, _exit_code), do: false
-  defp result_ok(:wkhtmltopdf, string, _exit_code), do: String.match?(string, ~r/Done/ms)
   defp result_ok(:weasyprint, _string,          0), do: true
 
   defp get_command_prefix(options) do
