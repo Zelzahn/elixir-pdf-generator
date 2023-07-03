@@ -1,13 +1,6 @@
 # PDF Generator
 
-[![CircleCI](https://circleci.com/gh/gutschilla/elixir-pdf-generator.svg?style=svg)](https://circleci.com/gh/gutschilla/elixir-pdf-generator)
-[![Module Version](https://img.shields.io/hexpm/v/pdf_generator.svg)](https://hex.pm/packages/pdf_generator)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-lightgreen.svg)](https://hexdocs.pm/pdf_generator/)
-[![Total Download](https://img.shields.io/hexpm/dt/pdf_generator.svg)](https://hex.pm/packages/pdf_generator)
-[![License](https://img.shields.io/hexpm/l/pdf_generator.svg)](https://github.com/gutschilla/elixir-pdf-generator/blob/master/LICENSE.md)
-[![Last Updated](https://img.shields.io/github/last-commit/gutschilla/elixir-pdf-generator.svg)](https://github.com/gutschilla/elixir-pdf-generator/commits/master)
-
-A wrapper for both wkhtmltopdf and chrome-headless plus PDFTK (adds in
+A wrapper for both weasyprint and chrome-headless plus PDFTK (adds in
 encryption) for use in Elixir projects.
 
 See [Changelog](./CHANGELOG.md) for recent changes.
@@ -56,7 +49,7 @@ To get the latest version or if you run into issues:
 ```elixir
 defp deps do
   [
-    {:pdf_generator, "~> 0.6.2", github: "gutschilla/elixir-pdf-generator", compile: "make chrome"}
+    {:pdf_generator, "~> 0.6.2", github: "Zelzahn/elixir-pdf-generator", compile: "make chrome"}
   ]
 end
 ```
@@ -138,7 +131,7 @@ html_works_too = "<html><body><h1>I need Docker, baby docker is what I need!"
 
 It's either
 
-* wkhtmltopdf or
+* weasyprint or
 
 * NodeJS (for Chrome-headless/Puppeteer)
 
@@ -179,24 +172,7 @@ Or, run `cd priv && npm install`
 
 ### wkhtmltopdf
 
-- **Alpine** (tested on 3.11): `apk add wkhtmltopdf` - gone are the days of
-  manually fumbling around with wkhtmltopdf and its muss preference over glibc.
-
-- **Ubuntu 19.10+**: `apt-get install wkhtmltopdf` and you'll have 0.12.5 on $PATH
-
-- **Ubuntu 18.04**: Download wkhtmltopdf and place it in your $PATH. Current
-  binaries can be found here: http://wkhtmltopdf.org/downloads.html
-
-  For the impatient (Ubuntu 18.04 Bionic Beaver):
-
-  ```bash
-  apt-get -y install xfonts-base xfonts-75dpi \
-    && wget https://downloads.wkhtmltopdf.org/0.12/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb \
-    && dpkg -i wkhtmltox_0.12.5-1.bionic_amd64.deb
-  ```
-
-  For other distributions, refer to http://wkhtmltopdf.org/downloads.html – For
-  example, replace `bionic` with `xenial` if you're on Ubuntu 16.04.
+I opted to no longer support wkhtmltopdf, as it's archived since the 2nd of January 2023.
 
 ### weasyprint
 
@@ -225,7 +201,7 @@ your path. But you may override or explicitly set their paths in your
 
 ```elixir
 config :pdf_generator,
-    wkhtml_path:    "/usr/bin/wkhtmltopdf",   # <-- this program actually does the heavy lifting
+    weasyprint_path:    "/usr/bin/weasyprint",   # <-- this program actually does the heavy lifting
     pdftk_path:     "/usr/bin/pdftk"          # <-- only needed for PDF encryption
 ```
 
@@ -235,7 +211,7 @@ or, if you prefer chrome-headless
 config :pdf_generator,
     use_chrome: true,                           # <-- make sure you installed node/puppeteer
     prefer_system_executable: true              # <-- set this if you installed the NPM dependencies globally
-    raise_on_missing_wkhtmltopdf_binary: false, # <-- so the app won't complain about a missing wkhtmltopdf
+    raise_on_missing_weasyprint_binary: false, # <-- so the app won't complain about a missing wkhtmltopdf
 ```
 
 ### More options
@@ -261,59 +237,13 @@ config :pdf_generator,
 ## Contribution
 
 You're more than welcome to submit patches. Please run `mix test` to ensure at
-bit of stability. Tests require a full-fledged environment, with all of
-`wkhtmltopdf`, `xvfb` and `chrome-headless-render-pdf` available path. Also
+bit of stability. Tests require a full-fledged environment, with all of `xvfb` and `chrome-headless-render-pdf` available path. Also
 make to to have run `npm install` in the app's base directory (will install
 chrome-headless-render-pdf non-globally in there). With all these installed,
 `mix test` should run smoothly.
 
 _Hint_: Getting `:enoent` errors usually means that chrome or xvfb couldn't be
 run. Yes, this should output a nicer error.
-
-## Heroku Setup
-
-If you want to use this project on Heroku, you can use buildpacks instead of
-binaries to load `pdftk` and `wkhtmltopdf`:
-
-```
-https://github.com/fxtentacle/heroku-pdftk-buildpack
-https://github.com/dscout/wkhtmltopdf-buildpack
-https://github.com/HashNuke/heroku-buildpack-elixir
-https://github.com/gjaldon/phoenix-static-buildpack
-```
-
-__note:__ The list also includes Elixir and Phoenix buildpacks to show you that they
-must be placed after `pdftk` and `wkhtmltopdf`. It won't work if you load the
-Elixir and Phoenix buildpacks first.
-
-## Running non-patched wkhtmltopdf headless
-
-This section only applies to `wkhtmltopdf` users using wkhtmltopdf w/o the qt patch. If you are using the latest 0.12 binaries from https://downloads.wkhtmltopdf.org (recommended) you can safely skip this section.
-
-If you want to run `wkhtmltopdf` with an unpatched version of webkit that requires
-an X Window server, but your server (or Mac) does not have one installed,
-you may find the `command_prefix` handy:
-
-```elixir
-PdfGenerator.generate "<html..", command_prefix: "xvfb-run"
-```
-
-This can also be configured globally in your `config/config.exs`:
-
-```elixir
-config :pdf_generator,
-    command_prefix: "/usr/bin/xvfb-run"
-```
-
-If you will be generating multiple PDFs simultaneously, or in rapid succession,
-you will need to configure `xvfb-run` to search for a free X server number,
-or set the server number explicitly. You can use the `command_prefix` to pass
-options to the `xvfb-run` command.
-
-```elixir
-config :pdf_generator,
-    command_prefix: ["xvfb-run", "-a"]
-```
 
 ## Documentation
 
@@ -337,6 +267,6 @@ and kindness.
 
 ## Copyright and License
 
-Copyright (c) 2014 Martin Gutsch
+Copyright (c) 2023 Friedrich Vandenberghe (original fork of AdSkipper who forked it from Martin Gutsch)
 
 Released under the MIT License, which can be found in [LICENSE.md](./LICENSE.md).
